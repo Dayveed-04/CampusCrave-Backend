@@ -1,14 +1,128 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  VENDOR
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+
+model Student {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String
+  name        String
+  phone       String?
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Vendor {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String
+  name        String
+  phone       String?
+  location    String
+  menuItems   MenuItem[]
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  password    String
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  menuItems   MenuItem[]
+}
+
+model MenuItem {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  available   Boolean    @default(true)
+  categoryId  Int
+  vendorId    Int
+  category    Category   @relation(fields: [categoryId], references: [id])
+  vendor      Vendor     @relation(fields: [vendorId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id                Int         @id @default(autoincrement())
+  studentId         Int
+  vendorId          Int
+  status            OrderStatus @default(PENDING)
+  totalAmount       Float
+  deliveryLocation  String
+  deliveryNotes     String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  student           Student     @relation(fields: [studentId], references: [id])
+  vendor            Vendor      @relation(fields: [vendorId], references: [id])
+  orderItems        OrderItem[]
+  payment           Payment?
+}
+
+model OrderItem {
+  id          Int      @id @default(autoincrement())
+  orderId     Int
+  menuItemId  Int
+  quantity    Int
+  unitPrice   Float
+  order       Order    @relation(fields: [orderId], references: [id])
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  orderId        Int           @unique
+  amount         Float
+  status         PaymentStatus
+  transactionRef String        @unique
+  createdAt      DateTime      @default(now())
+  order          Order         @relation(fields: [orderId], references: [id])
+}
+
+model Location {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  zone      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 }
