@@ -5,6 +5,10 @@ import prisma from "./config/database";
 import { globalErrorHandler } from "./middlewares/error-middleware";
 import authRoutes from "./routes/auth-routes";
 import testRoutes from "./routes/test-routes";
+import studentRoutes from "./routes/student-routes";
+import vendorRoutes from "./routes/vendor-routes";
+import orderRoutes from "./routes/order-routes";
+import categoryRoutes from "./routes/category-routes";
 
 const app = express();
 
@@ -25,7 +29,13 @@ app.get("/health", async (req, res) => {
 });     
 
 app.use("/api/auth",authRoutes);
-app.use("/api/test", testRoutes);
+// app.use("/api/test", testRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/vendors", vendorRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/categories", categoryRoutes);
+
+
 
 
 app.use(globalErrorHandler);
